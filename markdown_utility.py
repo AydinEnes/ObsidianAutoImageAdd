@@ -1,18 +1,31 @@
 import os
+import re
 
 def add_files_to_md(md_file, file_paths, vault_directory):
     # Read the existing content of the MD file
     with open(md_file, 'r', encoding='utf-8') as file:
         md_content = file.read()
 
-    # Append the Markdown file link for each file in the list
+    # Extract existing file paths from the MD content
+    existing_files = set(re.findall(r'\[\[(.*?)\]\]', md_content))  # Extract file names without '[[...]]'
+
+    # Create a set to store file names that have already been embedded in this Markdown file
+    embedded_files = set(existing_files)
+
+    # Append the Markdown file link for each file in the list, only if it's not already in the MD file
     for file_path in file_paths:
         relative_path = os.path.relpath(file_path, vault_directory)
-        md_content += f'\n![[{relative_path}]]\n'
+
+        # Check if the relative path (file name) is already in the set of embedded files
+        if relative_path not in embedded_files:
+            md_content += f'\n![[{relative_path}]]\n'
+            embedded_files.add(relative_path)
 
     # Write the updated content back to the MD file
     with open(md_file, 'w', encoding='utf-8') as file:
         file.write(md_content)
+
+
 
 def add_files_from_folder(vault_directory):
     # Iterate through the directories within the vault directory
